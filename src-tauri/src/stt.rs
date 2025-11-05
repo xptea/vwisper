@@ -5,6 +5,8 @@ use windows::Win32::Foundation::HWND;
 use windows::Win32::UI::WindowsAndMessaging::SetForegroundWindow;
 use std::process::Command;
 use std::env;
+#[cfg(target_os = "windows")]
+use std::os::windows::process::CommandExt;
 
 #[tauri::command]
 pub async fn type_text(text: String) -> Result<(), String> {
@@ -22,7 +24,7 @@ pub async fn type_text(text: String) -> Result<(), String> {
 fn type_text_windows(text: &str) -> Result<(), Box<dyn std::error::Error>> {
     let exe_path = env::current_exe()?;
     let injector_path = exe_path.parent().unwrap().join("text_injector");
-    Command::new(injector_path).arg(text).spawn()?;
+    Command::new(injector_path).arg(text).creation_flags(0x08000000).spawn()?;
     Ok(())
 }
 

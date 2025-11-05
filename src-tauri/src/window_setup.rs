@@ -43,7 +43,7 @@ pub fn setup_windows(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Err
 
         // println!("Window position: x={}, y={}", x, y);
 
-        let voice_window = WebviewWindowBuilder::new(app, "voice", tauri::WebviewUrl::External("http://localhost:1420/voice".parse().unwrap()))
+        let voice_window = WebviewWindowBuilder::new(app, "voice", tauri::WebviewUrl::App("voice".into()))
             .title("Voice")
             .decorations(false)
             .shadow(false)
