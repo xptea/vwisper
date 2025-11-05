@@ -59,24 +59,39 @@ export default function VoiceScreem() {
         const currentTranscript = result[0].transcript;
         
         if (mode === 'word') {
-          if (currentTranscript.length > lastSent.length) {
-            const newText = currentTranscript.slice(lastSent.length);
-            if (newText.trim()) {
+          if (result.isFinal) {
+            const remaining = currentTranscript.slice(lastSent.length);
+            if (remaining.trim()) {
               try {
                 const activeWindow = await invoke<number | null>('get_active_window');
                 if (activeWindow) {
                   await invoke('restore_window_focus', { hwnd: activeWindow });
                 }
-                await invoke('type_text', { text: newText });
+                await invoke('type_text', { text: remaining });
               } catch (error) {
                 console.error('Failed to type text:', error);
               }
             }
-            lastSent = currentTranscript;
-          }
-          
-          if (result.isFinal) {
             lastSent = '';
+          } else {
+            const newText = currentTranscript.slice(lastSent.length);
+            if (newText.includes(' ')) {
+              const lastSpaceIndex = newText.lastIndexOf(' ');
+              let toSend = newText.slice(0, lastSpaceIndex + 1);
+              toSend = toSend.replace(/[.!?]\s*$/, ' ');
+              if (toSend.trim()) {
+                try {
+                  const activeWindow = await invoke<number | null>('get_active_window');
+                  if (activeWindow) {
+                    await invoke('restore_window_focus', { hwnd: activeWindow });
+                  }
+                  await invoke('type_text', { text: toSend });
+                } catch (error) {
+                  console.error('Failed to type text:', error);
+                }
+                lastSent += toSend;
+              }
+            }
           }
         } else if (mode === 'sentence') {
           if (result.isFinal) {
