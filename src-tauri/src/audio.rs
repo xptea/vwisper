@@ -21,12 +21,9 @@ pub fn play_end_sound() {
 }
 
 fn play_sound(filename: &str) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    // Get the path relative to the executable
     let mut sound_path = std::env::current_exe()?;
-    sound_path.pop(); // Remove executable name
-    
-    // In development, the sounds are in src-tauri/src/sounds
-    // In production, we'll need to bundle them differently
+    sound_path.pop(); 
+
     let dev_path = sound_path.join("../../../src-tauri/src").join(filename);
     let prod_path = sound_path.join(filename);
     
@@ -35,7 +32,6 @@ fn play_sound(filename: &str) -> Result<(), Box<dyn std::error::Error + Send + S
     } else if prod_path.exists() {
         prod_path
     } else {
-        // Try relative to current directory as fallback
         PathBuf::from("src-tauri/src").join(filename)
     };
 

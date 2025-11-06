@@ -46,11 +46,9 @@ pub async fn load_shortcuts(app: AppHandle) -> Result<Shortcuts, String> {
     let path = get_shortcuts_path(&app);
     if path.exists() {
         let data = fs::read_to_string(&path).map_err(|e| format!("Failed to read shortcuts: {}", e))?;
-        // Try to parse as new format
         match serde_json::from_str::<Shortcuts>(&data) {
             Ok(shortcuts) => Ok(shortcuts),
             Err(_) => {
-                // Try to parse as old format and migrate
                 match serde_json::from_str::<OldShortcuts>(&data) {
                     Ok(old) => {
                         let mut new_shortcuts = HashMap::new();
@@ -59,7 +57,6 @@ pub async fn load_shortcuts(app: AppHandle) -> Result<Shortcuts, String> {
                             new_shortcuts.insert(normalized, ShortcutData { original: phrase, text });
                         }
                         let shortcuts = Shortcuts { shortcuts: new_shortcuts };
-                        // Save in new format
                         if let Err(e) = save_shortcuts(app, shortcuts.clone()).await {
                             eprintln!("Failed to save migrated shortcuts: {}", e);
                         }

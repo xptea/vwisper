@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { invoke } from "@tauri-apps/api/core";
 import { useNavigate } from 'react-router-dom';
 
@@ -15,6 +16,7 @@ export default function Shortcuts() {
   const [shortcuts, setShortcuts] = React.useState<Record<string, ShortcutData>>({});
   const [newPhrase, setNewPhrase] = React.useState('');
   const [newText, setNewText] = React.useState('');
+  const [editingPhrase, setEditingPhrase] = React.useState<string | null>(null);
   const navigate = useNavigate();
 
   React.useEffect(() => {
@@ -51,6 +53,20 @@ export default function Shortcuts() {
     }
   };
 
+  const updateShortcut = async () => {
+    if (!newPhrase.trim() || !newText.trim()) return;
+    try {
+      await invoke('remove_shortcut', { phrase: editingPhrase });
+      await invoke('add_shortcut', { phrase: newPhrase.trim(), text: newText.trim() });
+      setEditingPhrase(null);
+      setNewPhrase('');
+      setNewText('');
+      await loadShortcuts();
+    } catch (error) {
+      console.error('Failed to update shortcut:', error);
+    }
+  };
+
   return (
     <div className="flex items-center justify-center min-h-screen p-4">
       <Card className="w-full max-w-2xl">
@@ -61,8 +77,8 @@ export default function Shortcuts() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
+          <div className="flex gap-4">
+            <div className="flex-1">
               <Label htmlFor="phrase" className="mb-2">Phrase</Label>
               <Input
                 id="phrase"
@@ -71,19 +87,34 @@ export default function Shortcuts() {
                 placeholder="e.g., mango"
               />
             </div>
-            <div>
+            <div className="flex-[2]">
               <Label htmlFor="text" className="mb-2">Text to Paste</Label>
-              <Input
+              <Textarea
                 id="text"
                 value={newText}
                 onChange={(e) => setNewText(e.target.value)}
                 placeholder="e.g., Hello World"
+                rows={4}
               />
             </div>
           </div>
-          <Button onClick={addShortcut} className="w-full">
-            Add Shortcut
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={editingPhrase ? updateShortcut : addShortcut} className="flex-1">
+              {editingPhrase ? 'Update Shortcut' : 'Add Shortcut'}
+            </Button>
+            {editingPhrase && (
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setEditingPhrase(null);
+                  setNewPhrase('');
+                  setNewText('');
+                }}
+              >
+                Cancel
+              </Button>
+            )}
+          </div>
 
           <div className="space-y-2">
             {Object.entries(shortcuts).map(([normalized, data]) => (
@@ -91,9 +122,22 @@ export default function Shortcuts() {
                 <div>
                   <strong>{data.original}</strong>: {data.text}
                 </div>
-                <Button variant="destructive" size="sm" onClick={() => removeShortcut(normalized)}>
-                  Remove
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setEditingPhrase(normalized);
+                      setNewPhrase(data.original);
+                      setNewText(data.text);
+                    }}
+                  >
+                    Edit
+                  </Button>
+                  <Button variant="destructive" size="sm" onClick={() => removeShortcut(normalized)}>
+                    Remove
+                  </Button>
+                </div>
               </div>
             ))}
           </div>

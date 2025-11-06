@@ -28,7 +28,13 @@ pub async fn type_text_internal(text: String) -> Result<(), String> {
 fn type_text_windows(text: &str) -> Result<(), Box<dyn std::error::Error>> {
     let exe_path = env::current_exe()?;
     let injector_path = exe_path.parent().unwrap().join("text_injector");
-    Command::new(injector_path).arg(text).creation_flags(0x08000000).spawn()?;
+    let status = Command::new(injector_path)
+        .arg(text)
+        .creation_flags(0x08000000)
+        .status()?;
+    if !status.success() {
+        return Err(format!("text_injector exited with status: {}", status).into());
+    }
     Ok(())
 }
 

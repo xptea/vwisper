@@ -12,6 +12,7 @@ declare global {
 export default function VoiceScreem() {
   const [listening, setListening] = React.useState(false);
   const recognitionRef = React.useRef<any>(null);
+  const sentCharCountRef = React.useRef<number>(0);
 
   React.useEffect(() => {
     let polling = true;
@@ -51,17 +52,30 @@ export default function VoiceScreem() {
       recognitionRef.current.interimResults = true;
       recognitionRef.current.lang = 'en-US';
 
-      let lastSent = '';
+      sentCharCountRef.current = 0;
 
       recognitionRef.current.onresult = async (event: any) => {
         const mode = localStorage.getItem('pasteMode') || 'word';
-        const result = event.results[event.results.length - 1];
-        const currentTranscript = result[0].transcript;
-        
+
+
+        let fullTranscript = '';
+        for (let i = 0; i < event.results.length; i++) {
+          fullTranscript += event.results[i][0].transcript;
+        }
+
+        const lastResult = event.results[event.results.length - 1];
+
         if (mode === 'word') {
-          if (result.isFinal) {
-            const remaining = currentTranscript.slice(lastSent.length);
-            if (remaining.trim()) {
+
+          if (sentCharCountRef.current > fullTranscript.length) {
+            return;
+          }
+
+          const newSegment = fullTranscript.slice(sentCharCountRef.current);
+
+          if (lastResult.isFinal) {
+            const remaining = newSegment.trim();
+            if (remaining) {
               try {
                 const activeWindow = await invoke<number | null>('get_active_window');
                 if (activeWindow) {
@@ -72,12 +86,12 @@ export default function VoiceScreem() {
                 console.error('Failed to type text:', error);
               }
             }
-            lastSent = '';
+            sentCharCountRef.current = fullTranscript.length;
           } else {
-            const newText = currentTranscript.slice(lastSent.length);
-            if (newText.includes(' ')) {
-              const lastSpaceIndex = newText.lastIndexOf(' ');
-              let toSend = newText.slice(0, lastSpaceIndex + 1);
+            if (!newSegment) return;
+            if (newSegment.includes(' ')) {
+              const lastSpaceIndex = newSegment.lastIndexOf(' ');
+              let toSend = newSegment.slice(0, lastSpaceIndex + 1);
               toSend = toSend.replace(/[.!?]\s*$/, ' ');
               if (toSend.trim()) {
                 try {
@@ -89,13 +103,14 @@ export default function VoiceScreem() {
                 } catch (error) {
                   console.error('Failed to type text:', error);
                 }
-                lastSent += toSend;
+
+                sentCharCountRef.current += toSend.length;
               }
             }
           }
         } else if (mode === 'sentence') {
-          if (result.isFinal) {
-            const transcript = currentTranscript.trim();
+          if (lastResult.isFinal) {
+            const transcript = fullTranscript.trim();
             if (transcript) {
               try {
                 const activeWindow = await invoke<number | null>('get_active_window');
@@ -107,6 +122,7 @@ export default function VoiceScreem() {
                 console.error('Failed to type text:', error);
               }
             }
+            sentCharCountRef.current = 0;
           }
         }
       };
