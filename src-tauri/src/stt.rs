@@ -10,6 +10,10 @@ use std::os::windows::process::CommandExt;
 
 #[tauri::command]
 pub async fn type_text(text: String) -> Result<(), String> {
+    type_text_internal(text).await
+}
+
+pub async fn type_text_internal(text: String) -> Result<(), String> {
     #[cfg(target_os = "windows")]
     {
         type_text_windows(&text).map_err(|e| format!("Failed to type text: {}", e))

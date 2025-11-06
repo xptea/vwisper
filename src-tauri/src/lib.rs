@@ -4,6 +4,7 @@ mod stt;
 mod window_state;
 mod audio;
 mod tray;
+mod shortcuts;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -15,7 +16,7 @@ pub fn run() {
             key_monitor::start_global_key_monitor(app.handle().clone());
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![ key_monitor::get_listening_state, stt::type_text, stt::restore_window_focus, window_state::get_active_window, audio::play_start_sound_command, audio::play_end_sound_command])
+        .invoke_handler(tauri::generate_handler![ key_monitor::get_listening_state, stt::type_text, stt::restore_window_focus, window_state::get_active_window, audio::play_start_sound_command, audio::play_end_sound_command, shortcuts::load_shortcuts, shortcuts::save_shortcuts, shortcuts::add_shortcut, shortcuts::remove_shortcut, shortcuts::process_text])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

@@ -67,7 +67,7 @@ export default function VoiceScreem() {
                 if (activeWindow) {
                   await invoke('restore_window_focus', { hwnd: activeWindow });
                 }
-                await invoke('type_text', { text: remaining });
+                await invoke('process_text', { text: remaining });
               } catch (error) {
                 console.error('Failed to type text:', error);
               }
@@ -85,7 +85,7 @@ export default function VoiceScreem() {
                   if (activeWindow) {
                     await invoke('restore_window_focus', { hwnd: activeWindow });
                   }
-                  await invoke('type_text', { text: toSend });
+                  await invoke('process_text', { text: toSend });
                 } catch (error) {
                   console.error('Failed to type text:', error);
                 }
@@ -102,7 +102,7 @@ export default function VoiceScreem() {
                 if (activeWindow) {
                   await invoke('restore_window_focus', { hwnd: activeWindow });
                 }
-                await invoke('type_text', { text: transcript });
+                await invoke('process_text', { text: transcript });
               } catch (error) {
                 console.error('Failed to type text:', error);
               }
