@@ -1,6 +1,7 @@
 import React from "react";
 import { VoiceInput } from "../components/voice-input";
 import { invoke } from "@tauri-apps/api/core";
+import { listen } from "@tauri-apps/api/event";
 
 declare global {
   interface Window {
@@ -12,38 +13,37 @@ declare global {
 export default function VoiceScreem() {
   const [listening, setListening] = React.useState(false);
   const recognitionRef = React.useRef<any>(null);
-  const sentCharCountRef = React.useRef<number>(0);
+  const processingRef = React.useRef(false);
+  const queueRef = React.useRef<string[]>([]);
+  
+  const committedWordsRef = React.useRef<string[]>([]);
+  const lastInterimWordsRef = React.useRef<string[]>([]);
+  const wordStabilityCountRef = React.useRef<number[]>([]);
+  const processedFinalCountRef = React.useRef<number>(0);
+  
+  const STABILITY_THRESHOLD = 3;
 
-  React.useEffect(() => {
-    let polling = true;
-    let lastListeningState = false;
-    
-    const pollState = async () => {
-      while (polling) {
+  const processQueue = async () => {
+    if (processingRef.current) return;
+    processingRef.current = true;
+
+    while (queueRef.current.length > 0) {
+      const text = queueRef.current.shift();
+      if (text) {
         try {
-          const state = await invoke<boolean>("get_listening_state");
-          setListening(state);
-          
-          if (state && !lastListeningState) {
-            startSpeechRecognition();
-          } else if (!state && lastListeningState) {
-            stopSpeechRecognition();
-          }
-          lastListeningState = state;
+          await invoke('process_text', { text });
         } catch (error) {
-          console.error('Failed to get listening state:', error);
+          console.error('Failed to type text:', error);
         }
-        await new Promise((r) => setTimeout(r, 200));
       }
-    };
-    pollState();
-    return () => {
-      polling = false;
-      stopSpeechRecognition();
-    };
-  }, []);
+    }
 
-  const startSpeechRecognition = () => {
+    processingRef.current = false;
+  };
+
+  const startSpeechRecognition = React.useCallback(() => {
+    if (recognitionRef.current) return;
+
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       recognitionRef.current = new SpeechRecognition();
@@ -52,77 +52,109 @@ export default function VoiceScreem() {
       recognitionRef.current.interimResults = true;
       recognitionRef.current.lang = 'en-US';
 
-      sentCharCountRef.current = 0;
+      committedWordsRef.current = [];
+      lastInterimWordsRef.current = [];
+      wordStabilityCountRef.current = [];
+      processedFinalCountRef.current = 0;
+      queueRef.current = [];
 
       recognitionRef.current.onresult = async (event: any) => {
         const mode = localStorage.getItem('pasteMode') || 'word';
 
-
-        let fullTranscript = '';
-        for (let i = 0; i < event.results.length; i++) {
-          fullTranscript += event.results[i][0].transcript;
-        }
-
-        const lastResult = event.results[event.results.length - 1];
-
         if (mode === 'word') {
-
-          if (sentCharCountRef.current > fullTranscript.length) {
-            return;
+          let fullTranscript = '';
+          
+          for (let i = 0; i < event.results.length; i++) {
+            const result = event.results[i];
+            const transcript = result[0].transcript;
+            fullTranscript += transcript;
           }
-
-          const newSegment = fullTranscript.slice(sentCharCountRef.current);
-
+          
+          const allWords = fullTranscript.trim().split(/\s+/).filter(w => w);
+          const committedCount = committedWordsRef.current.length;
+          
+          const lastResult = event.results[event.results.length - 1];
+          
           if (lastResult.isFinal) {
-            const remaining = newSegment.trim();
-            if (remaining) {
-              try {
-                const activeWindow = await invoke<number | null>('get_active_window');
-                if (activeWindow) {
-                  await invoke('restore_window_focus', { hwnd: activeWindow });
-                }
-                await invoke('process_text', { text: remaining });
-              } catch (error) {
-                console.error('Failed to type text:', error);
+            const newWords = allWords.slice(committedCount);
+            for (const word of newWords) {
+              if (word) {
+                committedWordsRef.current.push(word);
+                queueRef.current.push(word + ' ');
               }
             }
-            sentCharCountRef.current = fullTranscript.length;
+            lastInterimWordsRef.current = [];
+            wordStabilityCountRef.current = [];
+            processQueue();
           } else {
-            if (!newSegment) return;
-            if (newSegment.includes(' ')) {
-              const lastSpaceIndex = newSegment.lastIndexOf(' ');
-              let toSend = newSegment.slice(0, lastSpaceIndex + 1);
-              toSend = toSend.replace(/[.!?]\s*$/, ' ');
-              if (toSend.trim()) {
-                try {
-                  const activeWindow = await invoke<number | null>('get_active_window');
-                  if (activeWindow) {
-                    await invoke('restore_window_focus', { hwnd: activeWindow });
-                  }
-                  await invoke('process_text', { text: toSend });
-                } catch (error) {
-                  console.error('Failed to type text:', error);
-                }
-
-                sentCharCountRef.current += toSend.length;
+            const interimWords = allWords.slice(committedCount);
+            const prevInterimWords = lastInterimWordsRef.current;
+            
+            const newStabilityCounts: number[] = [];
+            for (let i = 0; i < interimWords.length; i++) {
+              const word = interimWords[i];
+              const prevWord = prevInterimWords[i];
+              const prevCount = wordStabilityCountRef.current[i] || 0;
+              
+              if (word === prevWord) {
+                newStabilityCounts[i] = prevCount + 1;
+              } else {
+                newStabilityCounts[i] = 1;
               }
+            }
+            
+            let wordsToCommit = 0;
+            if (interimWords.length > 1) {
+              for (let i = 0; i < interimWords.length - 1; i++) {
+                if (newStabilityCounts[i] >= STABILITY_THRESHOLD) {
+                  wordsToCommit = i + 1;
+                } else {
+                  break;
+                }
+              }
+            }
+            
+            if (wordsToCommit > 0) {
+              for (let i = 0; i < wordsToCommit; i++) {
+                const word = interimWords[i];
+                committedWordsRef.current.push(word);
+                queueRef.current.push(word + ' ');
+              }
+              processQueue();
+              
+              lastInterimWordsRef.current = interimWords.slice(wordsToCommit);
+              wordStabilityCountRef.current = newStabilityCounts.slice(wordsToCommit);
+            } else {
+              lastInterimWordsRef.current = interimWords;
+              wordStabilityCountRef.current = newStabilityCounts;
             }
           }
         } else if (mode === 'sentence') {
+          const lastResult = event.results[event.results.length - 1];
           if (lastResult.isFinal) {
-            const transcript = fullTranscript.trim();
-            if (transcript) {
-              try {
-                const activeWindow = await invoke<number | null>('get_active_window');
-                if (activeWindow) {
-                  await invoke('restore_window_focus', { hwnd: activeWindow });
+            let fullTranscript = '';
+            for (let i = processedFinalCountRef.current; i < event.results.length; i++) {
+              if (event.results[i].isFinal) {
+                const transcript = event.results[i][0].transcript;
+                if (fullTranscript && !fullTranscript.endsWith(' ') && !transcript.startsWith(' ')) {
+                  fullTranscript += ' ';
                 }
-                await invoke('process_text', { text: transcript });
-              } catch (error) {
-                console.error('Failed to type text:', error);
+                fullTranscript += transcript;
               }
             }
-            sentCharCountRef.current = 0;
+            let finalCount = 0;
+            for (let i = 0; i < event.results.length; i++) {
+              if (event.results[i].isFinal) {
+                finalCount = i + 1;
+              }
+            }
+            processedFinalCountRef.current = finalCount;
+            
+            const text = fullTranscript.trim();
+            if (text) {
+              queueRef.current.push(text);
+              processQueue();
+            }
           }
         }
       };
@@ -131,18 +163,74 @@ export default function VoiceScreem() {
         console.error('Speech recognition error:', event.error);
       };
 
+      recognitionRef.current.onend = () => {
+        const mode = localStorage.getItem('pasteMode') || 'word';
+        
+        if (mode === 'word') {
+          const remainingWords = lastInterimWordsRef.current;
+          if (remainingWords.length > 0) {
+            for (const word of remainingWords) {
+              if (word) {
+                queueRef.current.push(word + ' ');
+              }
+            }
+            processQueue();
+          }
+        }
+        
+        committedWordsRef.current = [];
+        lastInterimWordsRef.current = [];
+        wordStabilityCountRef.current = [];
+        processedFinalCountRef.current = 0;
+      };
+
       recognitionRef.current.start();
     } else {
       console.error('Speech recognition not supported in this browser');
     }
-  };
+  }, []);
 
-  const stopSpeechRecognition = () => {
+  const stopSpeechRecognition = React.useCallback(() => {
     if (recognitionRef.current) {
       recognitionRef.current.stop();
       recognitionRef.current = null;
     }
-  };
+  }, []);
+
+  React.useEffect(() => {
+    let unlistenStart: () => void;
+    let unlistenStop: () => void;
+
+    const setupListeners = async () => {
+      unlistenStart = await listen('start-listening', () => {
+        setListening(true);
+        startSpeechRecognition();
+      });
+
+      unlistenStop = await listen('stop-listening', () => {
+        setListening(false);
+        stopSpeechRecognition();
+      });
+
+      try {
+        const state = await invoke<boolean>("get_listening_state");
+        setListening(state);
+        if (state) {
+          startSpeechRecognition();
+        }
+      } catch (error) {
+        console.error('Failed to get listening state:', error);
+      }
+    };
+
+    setupListeners();
+
+    return () => {
+      if (unlistenStart) unlistenStart();
+      if (unlistenStop) unlistenStop();
+      stopSpeechRecognition();
+    };
+  }, [startSpeechRecognition, stopSpeechRecognition]);
 
   return (
     <>

@@ -6,11 +6,17 @@ mod audio;
 mod tray;
 mod shortcuts;
 
+use std::sync::{Arc, Mutex};
+
+pub struct TypingState(pub Arc<Mutex<bool>>);
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
+        .manage(TypingState(Arc::new(Mutex::new(false))))
         .setup(|app| {
+            stt::init_stt_thread();
             window_setup::setup_windows(app)?;
             tray::setup_system_tray(app)?;
             key_monitor::start_global_key_monitor(app.handle().clone());

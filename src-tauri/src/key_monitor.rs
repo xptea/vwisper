@@ -9,6 +9,8 @@ use windows::Win32::UI::WindowsAndMessaging::{GetForegroundWindow, SetForeground
 #[cfg(target_os = "windows")]
 use windows::Win32::Foundation::HWND;
 
+use crate::TypingState;
+
 pub fn start_global_key_monitor(app_handle: AppHandle) {
     use std::sync::{Arc, Mutex};
     let listening_state = Arc::new(Mutex::new(false));
@@ -25,7 +27,12 @@ pub fn start_global_key_monitor(app_handle: AppHandle) {
 
         loop {
             let keys = device_state.get_keys();
-            let control_pressed = keys.contains(&Keycode::RControl);
+            let is_typing = if let Some(state) = app_handle_for_thread.try_state::<TypingState>() {
+                *state.0.lock().unwrap()
+            } else {
+                false
+            };
+            let control_pressed = keys.contains(&Keycode::RControl) || is_typing;
             let now = Instant::now();
 
             if control_pressed && !last_control_state && now.duration_since(last_action_time) > Duration::from_millis(25) {
@@ -39,6 +46,13 @@ pub fn start_global_key_monitor(app_handle: AppHandle) {
                 }
                 if let Some(window) = app_handle_for_thread.get_webview_window("voice") {
                     let _ = window.show();
+                    #[cfg(target_os = "windows")]
+                    if let Some(hwnd) = active_window_handle {
+                        thread::sleep(Duration::from_millis(100));
+                        unsafe {
+                            let _ = SetForegroundWindow(hwnd);
+                        }
+                    }
                 }
                 let _ = app_handle_for_thread.emit_to("voice", "start-listening", "");
                 audio::play_start_sound();

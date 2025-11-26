@@ -105,8 +105,8 @@ pub async fn process_text(app: AppHandle, text: String) -> Result<(), String> {
         return Ok(());
     }
     if let Some(data) = shortcuts.shortcuts.get(&normalized) {
-        stt::type_text_internal(data.text.clone()).await
+        stt::type_text_internal(app, data.text.clone()).await
     } else {
-        stt::type_text_internal(text).await
+        stt::type_text_internal(app, text).await
     }
 }
