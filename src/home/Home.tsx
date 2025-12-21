@@ -30,10 +30,10 @@ export default function Home() {
               <RadioGroupItem value="word" id="word" />
               <Label htmlFor="word">Paste Word by Word</Label>
             </div>
-            <div className="flex items-center space-x-2">
+            {/* <div className="flex items-center space-x-2">
               <RadioGroupItem value="sentence" id="sentence" />
               <Label htmlFor="sentence">Paste After Full Sentence</Label>
-            </div>
+            </div> */}
           </RadioGroup>
           <Button onClick={() => navigate('/shortcuts')} className="w-full">
             Manage Shortcuts
