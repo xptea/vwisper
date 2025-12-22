@@ -1,21 +1,20 @@
-
+use crate::TypingState;
+use arboard::Clipboard;
+#[cfg(target_os = "windows")]
+use std::mem;
+use std::sync::mpsc::{channel, Sender};
+use std::sync::{Arc, Mutex};
+use std::thread;
+use std::time::Duration;
+use tauri::{AppHandle, Manager};
 #[cfg(target_os = "windows")]
 use windows::Win32::Foundation::HWND;
 #[cfg(target_os = "windows")]
-use windows::Win32::UI::WindowsAndMessaging::SetForegroundWindow;
-#[cfg(target_os = "windows")]
 use windows::Win32::UI::Input::KeyboardAndMouse::{
-    SendInput, INPUT, INPUT_KEYBOARD, KEYBDINPUT, KEYEVENTF_KEYUP, VK_CONTROL, VK_V
+    SendInput, INPUT, INPUT_KEYBOARD, KEYBDINPUT, KEYEVENTF_KEYUP, VK_CONTROL, VK_V,
 };
 #[cfg(target_os = "windows")]
-use std::mem;
-use tauri::{AppHandle, Manager};
-use crate::TypingState;
-use arboard::Clipboard;
-use std::sync::{Mutex, Arc};
-use std::sync::mpsc::{channel, Sender};
-use std::thread;
-use std::time::Duration;
+use windows::Win32::UI::WindowsAndMessaging::SetForegroundWindow;
 
 lazy_static::lazy_static! {
     static ref TEXT_SENDER: Mutex<Option<Sender<(String, Option<isize>)>>> = Mutex::new(None);
@@ -27,7 +26,7 @@ pub fn init_stt_thread() {
 
     thread::spawn(move || {
         let mut clipboard = Clipboard::new().ok();
-        
+
         for (text, hwnd) in rx {
             #[cfg(target_os = "windows")]
             if let Some(h) = hwnd {
@@ -60,7 +59,7 @@ pub fn init_stt_thread() {
                 unsafe {
                     send_paste_combo();
                 }
-                thread::sleep(Duration::from_millis(50));
+                thread::sleep(Duration::from_millis(100));
             } else {
                 eprintln!("Failed to set clipboard for text: {}", text);
             }
@@ -112,8 +111,8 @@ unsafe fn send_paste_combo() {
                 dwFlags: Default::default(),
                 time: 0,
                 dwExtraInfo: 0,
-            }
-        }
+            },
+        },
     });
 
     inputs.push(INPUT {
@@ -125,8 +124,8 @@ unsafe fn send_paste_combo() {
                 dwFlags: Default::default(),
                 time: 0,
                 dwExtraInfo: 0,
-            }
-        }
+            },
+        },
     });
 
     inputs.push(INPUT {
@@ -138,8 +137,8 @@ unsafe fn send_paste_combo() {
                 dwFlags: KEYEVENTF_KEYUP,
                 time: 0,
                 dwExtraInfo: 0,
-            }
-        }
+            },
+        },
     });
 
     inputs.push(INPUT {
@@ -151,8 +150,8 @@ unsafe fn send_paste_combo() {
                 dwFlags: KEYEVENTF_KEYUP,
                 time: 0,
                 dwExtraInfo: 0,
-            }
-        }
+            },
+        },
     });
 
     SendInput(&inputs, mem::size_of::<INPUT>() as i32);
