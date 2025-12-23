@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>NSInputMonitoringUsageDescription</key>
+  <string>Needs access to monitor the Fn key for push-to-talk activation.</string>
+  <key>NSMicrophoneUsageDescription</key>
+  <string>Needs access to the microphone for speech transcription.</string>
+  <key>NSSpeechRecognitionUsageDescription</key>
+  <string>Needs access to speech recognition to transcribe your voice.</string>
+</dict>
+</plist>

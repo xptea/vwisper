@@ -5,13 +5,9 @@ import { listen } from "@tauri-apps/api/event";
 import { useSpeechToText } from "../hooks/use-speech-to-text";
 
 export default function VoiceScreem() {
-  const {
-    isListening,
-    transcript,
-    start,
-    stop,
-    clear
-  } = useSpeechToText({ continuous: true });
+  const { isListening, transcript, start, stop, clear } = useSpeechToText({
+    continuous: true,
+  });
 
   const processingRef = useRef(false);
   const queueRef = useRef<string[]>([]);
@@ -26,10 +22,11 @@ export default function VoiceScreem() {
       if (text) {
         try {
           const textToSend = hasTypedRef.current ? " " + text : text;
-          await invoke('process_text', { text: textToSend });
+          console.info("[voice] sending transcript to backend", textToSend);
+          await invoke("process_text", { text: textToSend });
           hasTypedRef.current = true;
         } catch (error) {
-          console.error('Failed to type text:', error);
+          console.error("Failed to type text:", error);
         }
       }
     }
@@ -40,6 +37,7 @@ export default function VoiceScreem() {
     if (transcript) {
       const cleanTranscript = transcript.replace(/[\n\r]+/g, " ").trim();
       if (cleanTranscript) {
+        console.info("[voice] transcript received", cleanTranscript);
         queueRef.current.push(cleanTranscript);
         clear();
         processQueue();
@@ -52,12 +50,14 @@ export default function VoiceScreem() {
     let unlistenStop: () => void;
 
     const setupListeners = async () => {
-      unlistenStart = await listen('start-listening', () => {
+      unlistenStart = await listen("start-listening", () => {
         hasTypedRef.current = false;
+        console.info("[voice] start-listening event");
         start();
       });
 
-      unlistenStop = await listen('stop-listening', () => {
+      unlistenStop = await listen("stop-listening", () => {
+        console.info("[voice] stop-listening event");
         stop();
       });
 
@@ -67,7 +67,7 @@ export default function VoiceScreem() {
           start();
         }
       } catch (error) {
-        console.error('Failed to get listening state:', error);
+        console.error("Failed to get listening state:", error);
       }
     };
 

@@ -5,7 +5,7 @@ pub fn setup_windows(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Err
     let _home_window = WebviewWindowBuilder::new(app, "home", WebviewUrl::App("".into()))
         .title("Home")
         .inner_size(1200.0, 800.0)
-        .visible(false) 
+        .visible(false)
         .build()?;
 
     let monitors = app.available_monitors()?;
@@ -25,15 +25,23 @@ pub fn setup_windows(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Err
         let x = (actual_width - window_width) / 2.0;
         let y = actual_height - window_height - padding;
 
-        let voice_window = WebviewWindowBuilder::new(app, "voice", tauri::WebviewUrl::App("voice".into()))
-            .title("Voice")
-            .decorations(false)
-            .shadow(false)
-            .transparent(true)
-            .inner_size(window_width, window_height)
-            .always_on_top(true)
-            .skip_taskbar(true)
-            .build()?;
+        let mut voice_window_builder =
+            WebviewWindowBuilder::new(app, "voice", tauri::WebviewUrl::App("voice".into()))
+                .title("Voice")
+                .decorations(false)
+                .shadow(false)
+                .inner_size(window_width, window_height)
+                .always_on_top(true)
+                .skip_taskbar(true);
+        #[cfg(any(not(target_os = "macos"), feature = "macos-private-api"))]
+        {
+            voice_window_builder = voice_window_builder.transparent(true);
+        }
+        #[cfg(target_os = "macos")]
+        {
+            voice_window_builder = voice_window_builder.focusable(false);
+        }
+        let voice_window = voice_window_builder.build()?;
 
         let _ = voice_window.set_position(tauri::Position::Physical(tauri::PhysicalPosition {
             x: x as i32,
