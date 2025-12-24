@@ -1,18 +1,26 @@
-mod window_setup;
-mod key_monitor;
-mod stt;
-mod window_state;
 mod audio;
-mod tray;
+mod key_monitor;
 mod shortcuts;
+mod stt;
+mod tray;
+mod window_setup;
+mod window_state;
 
 use std::sync::{Arc, Mutex};
 
 pub struct TypingState(pub Arc<Mutex<bool>>);
 
+use tauri::Manager;
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
+            if let Some(window) = app.get_webview_window("home") {
+                let _ = window.show();
+                let _ = window.set_focus();
+            }
+        }))
         .plugin(tauri_plugin_opener::init())
         .manage(TypingState(Arc::new(Mutex::new(false))))
         .setup(|app| {
@@ -22,7 +30,19 @@ pub fn run() {
             key_monitor::start_global_key_monitor(app.handle().clone());
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![ key_monitor::get_listening_state, stt::type_text, stt::restore_window_focus, window_state::get_active_window, audio::play_start_sound_command, audio::play_end_sound_command, shortcuts::load_shortcuts, shortcuts::save_shortcuts, shortcuts::add_shortcut, shortcuts::remove_shortcut, shortcuts::process_text])
+        .invoke_handler(tauri::generate_handler![
+            key_monitor::get_listening_state,
+            stt::type_text,
+            stt::restore_window_focus,
+            window_state::get_active_window,
+            audio::play_start_sound_command,
+            audio::play_end_sound_command,
+            shortcuts::load_shortcuts,
+            shortcuts::save_shortcuts,
+            shortcuts::add_shortcut,
+            shortcuts::remove_shortcut,
+            shortcuts::process_text
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

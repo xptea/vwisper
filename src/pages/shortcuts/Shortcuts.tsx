@@ -1,11 +1,9 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { invoke } from "@tauri-apps/api/core";
-import { useNavigate } from 'react-router-dom';
 
 interface ShortcutData {
   original: string;
@@ -17,7 +15,6 @@ export default function Shortcuts() {
   const [newPhrase, setNewPhrase] = React.useState('');
   const [newText, setNewText] = React.useState('');
   const [editingPhrase, setEditingPhrase] = React.useState<string | null>(null);
-  const navigate = useNavigate();
 
   React.useEffect(() => {
     loadShortcuts();
@@ -68,8 +65,8 @@ export default function Shortcuts() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen p-4">
-      <Card className="w-full max-w-2xl">
+    <div className="flex flex-col gap-4 p-4 md:p-6">
+      <Card className="w-full">
         <CardHeader>
           <CardTitle>Shortcuts</CardTitle>
           <CardDescription>
@@ -80,14 +77,15 @@ export default function Shortcuts() {
           <div className="flex gap-4">
             <div className="flex-1">
               <Label htmlFor="phrase" className="mb-2">Phrase</Label>
-              <Input
+              <Textarea
                 id="phrase"
                 value={newPhrase}
                 onChange={(e) => setNewPhrase(e.target.value)}
-                placeholder="e.g., mango"
+                placeholder="e.g., cat"
+                rows={4}
               />
             </div>
-            <div className="flex-[2]">
+            <div className="flex-1">
               <Label htmlFor="text" className="mb-2">Text to Paste</Label>
               <Textarea
                 id="text"
@@ -141,10 +139,6 @@ export default function Shortcuts() {
               </div>
             ))}
           </div>
-
-          <Button variant="outline" onClick={() => navigate('/')} className="w-full">
-            Back to Home
-          </Button>
         </CardContent>
       </Card>
     </div>

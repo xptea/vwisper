@@ -52,7 +52,7 @@ export function VoiceInput({
   return (
     <div className={cn("flex flex-col items-center justify-center", className)}>
       <motion.div
-        className="flex p-2 border bg-white items-center justify-center rounded-full cursor-pointer"
+        className="flex p-2 border border-black/20 bg-white items-center justify-center rounded-full cursor-pointer"
         layout
         transition={{
           layout: {
@@ -61,10 +61,10 @@ export function VoiceInput({
         }}
         onClick={onClickHandler}
       >
-        <div className="h-6 w-6 items-center justify-center flex ">
+        <div className="h-6 w-6 items-center justify-center flex text-black">
           {listening ? (
             <motion.div
-              className="w-4 h-4 bg-primary rounded-sm"
+              className="w-4 h-4 bg-black rounded-sm"
               animate={{
                 rotate: [0, 180, 360],
               }}
@@ -75,7 +75,7 @@ export function VoiceInput({
               }}
             />
           ) : (
-            <Mic />
+            <Mic className="text-black" />
           )}
         </div>
         <AnimatePresence mode="wait">
@@ -94,7 +94,7 @@ export function VoiceInput({
                 {[...Array(12)].map((_, i) => (
                   <motion.div
                     key={i}
-                    className="w-0.5 bg-primary rounded-full"
+                    className="w-0.5 bg-black rounded-full"
                     initial={{ height: 2 }}
                     animate={{
                       height: listening
@@ -111,7 +111,7 @@ export function VoiceInput({
                 ))}
               </div>
               {/* Timer */}
-              <div className="text-xs text-muted-foreground w-10 text-center">
+              <div className="text-xs text-black w-10 text-center">
                 {formatTime(time)}
               </div>
             </motion.div>
