@@ -6,7 +6,6 @@ import {
   IconPlayerPlay,
   IconSettings,
   IconKeyboard,
-  IconBook,
   IconHistory,
 } from "@tabler/icons-react"
 
@@ -22,7 +21,10 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 
-import logoImage from "@/assets/logo.webp"
+import { UpdateCard } from "@/components/update-card"
+import { useTheme } from "next-themes"
+import lightModeLogo from "@/assets/lightmode.png"
+import darkModeLogo from "@/assets/darkmode.png"
 
 const data = {
   gettingStarted: [
@@ -35,6 +37,11 @@ const data = {
       title: "Shortcuts",
       url: "/shortcuts",
       icon: IconKeyboard,
+    },
+    {
+      title: "Preferences",
+      url: "/preferences",
+      icon: IconSettings,
     },
   ],
   analytics: [
@@ -49,22 +56,12 @@ const data = {
       icon: IconHistory,
     },
   ],
-  settings: [
-    {
-      title: "Preferences",
-      url: "/preferences",
-      icon: IconSettings,
-    },
-    {
-      title: "Help",
-      url: "/help",
-      icon: IconHelp,
-    },
-  ],
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const location = useLocation()
+  const { resolvedTheme } = useTheme()
+  const logo = resolvedTheme === "dark" ? darkModeLogo : lightModeLogo
 
   const isActive = (url: string) => {
     if (url === "/") {
@@ -74,12 +71,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   }
 
   return (
-    <Sidebar collapsible="offcanvas" {...props}>
+    <Sidebar collapsible="offcanvas" {...props} data-tauri-drag-region>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
             <div className="flex items-center gap-2 p-2">
-              <img src={logoImage} alt="VWisper" className="size-8 rounded" />
+              <img src={logo} alt="VWisper" className="size-8 rounded" />
               <span className="text-xl font-bold">VWisper</span>
             </div>
           </SidebarMenuItem>
@@ -132,25 +129,27 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {/* Settings Section */}
-        <SidebarGroup className="mt-auto">
-          <SidebarGroupLabel>Settings</SidebarGroupLabel>
+        {/* Update Card - Own section at bottom */}
+        <SidebarGroup className="mt-auto p-2">
+          <UpdateCard />
+        </SidebarGroup>
+
+        {/* Help - Standalone at bottom */}
+        <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
-              {data.settings.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    tooltip={item.title}
-                    asChild
-                    isActive={isActive(item.url)}
-                  >
-                    <Link to={item.url}>
-                      {item.icon && <item.icon />}
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  tooltip="Help"
+                  asChild
+                  isActive={isActive("/help")}
+                >
+                  <Link to="/help">
+                    <IconHelp />
+                    <span>Help</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -158,3 +157,4 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     </Sidebar>
   )
 }
+

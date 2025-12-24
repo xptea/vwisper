@@ -3,6 +3,7 @@ mod key_monitor;
 mod shortcuts;
 mod stt;
 mod tray;
+mod updater;
 mod window_setup;
 mod window_state;
 
@@ -41,7 +42,10 @@ pub fn run() {
             shortcuts::save_shortcuts,
             shortcuts::add_shortcut,
             shortcuts::remove_shortcut,
-            shortcuts::process_text
+            shortcuts::process_text,
+            updater::download_and_install_update,
+            updater::check_pending_update,
+            updater::check_for_update
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

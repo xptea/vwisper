@@ -4,8 +4,9 @@ use tauri::WebviewUrl;
 pub fn setup_windows(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     let _home_window = WebviewWindowBuilder::new(app, "home", WebviewUrl::App("".into()))
         .title("Home")
-        .inner_size(1200.0, 800.0)
-        .visible(false) 
+        .inner_size(1600.0, 800.0)
+        .visible(false)
+        .decorations(false)
         .build()?;
 
     let monitors = app.available_monitors()?;
@@ -25,15 +26,16 @@ pub fn setup_windows(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Err
         let x = (actual_width - window_width) / 2.0;
         let y = actual_height - window_height - padding;
 
-        let voice_window = WebviewWindowBuilder::new(app, "voice", tauri::WebviewUrl::App("voice".into()))
-            .title("Voice")
-            .decorations(false)
-            .shadow(false)
-            .transparent(true)
-            .inner_size(window_width, window_height)
-            .always_on_top(true)
-            .skip_taskbar(true)
-            .build()?;
+        let voice_window =
+            WebviewWindowBuilder::new(app, "voice", tauri::WebviewUrl::App("voice".into()))
+                .title("Voice")
+                .decorations(false)
+                .shadow(false)
+                .transparent(true)
+                .inner_size(window_width, window_height)
+                .always_on_top(true)
+                .skip_taskbar(true)
+                .build()?;
 
         let _ = voice_window.set_position(tauri::Position::Physical(tauri::PhysicalPosition {
             x: x as i32,

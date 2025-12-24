@@ -855,7 +855,7 @@ Location: `%LOCALAPPDATA%/vwisper/shortcuts.json`
 ```json
 {
   "productName": "vwisper",
-  "version": "0.1.4",
+  "version": "0.0.5",
   "identifier": "com.webst.vwisper",
   "build": {
     "beforeDevCommand": "bun run dev",
