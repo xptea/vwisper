@@ -2,6 +2,7 @@ mod audio;
 mod key_monitor;
 mod shortcuts;
 mod stt;
+mod transcription_history;
 mod tray;
 mod updater;
 mod window_setup;
@@ -36,6 +37,7 @@ pub fn run() {
             stt::type_text,
             stt::restore_window_focus,
             window_state::get_active_window,
+            window_state::get_active_window_name,
             audio::play_start_sound_command,
             audio::play_end_sound_command,
             shortcuts::load_shortcuts,
@@ -45,7 +47,14 @@ pub fn run() {
             shortcuts::process_text,
             updater::download_and_install_update,
             updater::check_pending_update,
-            updater::check_for_update
+            updater::check_for_update,
+            transcription_history::load_history,
+            transcription_history::get_history_settings,
+            transcription_history::save_history_settings,
+            transcription_history::save_history_entry,
+            transcription_history::delete_history_entry,
+            transcription_history::clear_history,
+            transcription_history::export_history
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

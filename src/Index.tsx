@@ -9,6 +9,7 @@ import SecondScreen from './voice/Voice';
 import { ThemeProvider } from "./components/theme-provider";
 import { DashboardLayout } from "./components/dashboard-layout";
 import { UpdateProvider } from "./lib/update-context";
+import { HistoryProvider } from "./lib/history-context";
 
 function Router() {
   return (
@@ -20,46 +21,48 @@ function Router() {
         disableTransitionOnChange
       >
         <UpdateProvider>
-          <Routes>
-            {/* Getting Started */}
-            <Route path="/quick-start" element={
-              <DashboardLayout>
-                <QuickStart />
-              </DashboardLayout>
-            } />
-            <Route path="/shortcuts" element={
-              <DashboardLayout>
-                <Shortcuts />
-              </DashboardLayout>
-            } />
+          <HistoryProvider>
+            <Routes>
+              {/* Getting Started */}
+              <Route path="/quick-start" element={
+                <DashboardLayout>
+                  <QuickStart />
+                </DashboardLayout>
+              } />
+              <Route path="/shortcuts" element={
+                <DashboardLayout>
+                  <Shortcuts />
+                </DashboardLayout>
+              } />
 
-            {/* Analytics */}
-            <Route path="/" element={
-              <DashboardLayout>
-                <UsageStats />
-              </DashboardLayout>
-            } />
-            <Route path="/history" element={
-              <DashboardLayout>
-                <TranscriptionHistory />
-              </DashboardLayout>
-            } />
+              {/* Analytics */}
+              <Route path="/" element={
+                <DashboardLayout>
+                  <UsageStats />
+                </DashboardLayout>
+              } />
+              <Route path="/history" element={
+                <DashboardLayout>
+                  <TranscriptionHistory />
+                </DashboardLayout>
+              } />
 
-            {/* Settings */}
-            <Route path="/preferences" element={
-              <DashboardLayout>
-                <Settings />
-              </DashboardLayout>
-            } />
-            <Route path="/help" element={
-              <DashboardLayout>
-                <Help />
-              </DashboardLayout>
-            } />
+              {/* Settings */}
+              <Route path="/preferences" element={
+                <DashboardLayout>
+                  <Settings />
+                </DashboardLayout>
+              } />
+              <Route path="/help" element={
+                <DashboardLayout>
+                  <Help />
+                </DashboardLayout>
+              } />
 
-            {/* Voice Overlay (no dashboard layout) */}
-            <Route path="/voice" element={<SecondScreen />} />
-          </Routes>
+              {/* Voice Overlay (no dashboard layout) */}
+              <Route path="/voice" element={<SecondScreen />} />
+            </Routes>
+          </HistoryProvider>
         </UpdateProvider>
       </ThemeProvider>
     </BrowserRouter>
