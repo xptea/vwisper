@@ -88,13 +88,14 @@ export default function Settings() {
         : historySettings.retention_days.toString();
 
     return (
-        <div className="flex flex-col gap-4 p-4 md:p-6">
-            <div className="flex flex-col gap-1">
-                <h1 className="text-2xl font-semibold">Settings</h1>
-                <p className="text-muted-foreground">Manage your VWisper preferences</p>
-            </div>
+        <div className="h-full overflow-auto">
+            <div className="flex flex-col gap-4 p-4 md:p-6">
+                <div className="flex flex-col gap-1">
+                    <h1 className="text-2xl font-semibold">Settings</h1>
+                    <p className="text-muted-foreground">Manage your VWisper preferences</p>
+                </div>
 
-            <div className="grid gap-4 md:grid-cols-2">
+                <div className="grid gap-4 md:grid-cols-2">
                 {/* Transcription Settings */}
                 <Card>
                     <CardHeader>
@@ -317,6 +318,7 @@ export default function Settings() {
                         </div>
                     </CardContent>
                 </Card>
+                </div>
             </div>
         </div>
     );

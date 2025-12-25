@@ -2,13 +2,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 
 export default function Help() {
     return (
-        <div className="flex flex-col gap-4 p-4 md:p-6">
-            <div className="flex flex-col gap-1">
-                <h1 className="text-2xl font-semibold">Help</h1>
-                <p className="text-muted-foreground">Common questions and troubleshooting</p>
-            </div>
+        <div className="h-full overflow-auto">
+            <div className="flex flex-col gap-4 p-4 md:p-6">
+                <div className="flex flex-col gap-1">
+                    <h1 className="text-2xl font-semibold">Help</h1>
+                    <p className="text-muted-foreground">Common questions and troubleshooting</p>
+                </div>
 
-            <div className="grid gap-4">
+                <div className="grid gap-4">
                 <Card>
                     <CardHeader>
                         <CardTitle>Frequently Asked Questions</CardTitle>
@@ -59,6 +60,7 @@ export default function Help() {
                         </p>
                     </CardContent>
                 </Card>
+                </div>
             </div>
         </div>
     )

@@ -2,14 +2,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 
 export default function QuickStart() {
     return (
-        <div className="flex flex-col gap-4 p-4 md:p-6">
-            <div className="flex flex-col gap-1">
-                <h1 className="text-2xl font-semibold">Quick Start</h1>
-                <p className="text-muted-foreground">Get up and running with VWisper in minutes</p>
-            </div>
+        <div className="h-full overflow-auto">
+            <div className="flex flex-col gap-4 p-4 md:p-6">
+                <div className="flex flex-col gap-1">
+                    <h1 className="text-2xl font-semibold">Quick Start</h1>
+                    <p className="text-muted-foreground">Get up and running with VWisper in minutes</p>
+                </div>
 
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                <Card>
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    <Card>
                     <CardHeader>
                         <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary text-primary-foreground mb-2">
                             1
@@ -44,18 +45,19 @@ export default function QuickStart() {
                         </CardDescription>
                     </CardHeader>
                 </Card>
-            </div>
+                </div>
 
-            <Card>
-                <CardHeader>
-                    <CardTitle>Pro Tips</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                    <p>• <strong>Shortcuts:</strong> Set up voice shortcuts to paste common phrases instantly</p>
-                    <p>• <strong>Works everywhere:</strong> VWisper works in any application that accepts text input</p>
-                    <p>• <strong>Background mode:</strong> The voice overlay appears when you hold the key, even when VWisper is minimized</p>
-                </CardContent>
-            </Card>
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Pro Tips</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                        <p>• <strong>Shortcuts:</strong> Set up voice shortcuts to paste common phrases instantly</p>
+                        <p>• <strong>Works everywhere:</strong> VWisper works in any application that accepts text input</p>
+                        <p>• <strong>Background mode:</strong> The voice overlay appears when you hold the key, even when VWisper is minimized</p>
+                    </CardContent>
+                </Card>
+            </div>
         </div>
     )
 }

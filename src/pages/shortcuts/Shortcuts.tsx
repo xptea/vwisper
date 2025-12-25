@@ -65,14 +65,20 @@ export default function Shortcuts() {
   };
 
   return (
-    <div className="flex flex-col gap-4 p-4 md:p-6">
-      <Card className="w-full">
-        <CardHeader>
-          <CardTitle>Shortcuts</CardTitle>
-          <CardDescription>
-            Manage voice shortcuts. Say the phrase to paste the associated text.
-          </CardDescription>
-        </CardHeader>
+    <div className="h-full overflow-auto">
+      <div className="flex flex-col gap-4 p-4 md:p-6">
+        <div className="flex flex-col gap-1">
+          <h1 className="text-2xl font-semibold">Shortcuts</h1>
+          <p className="text-muted-foreground">Manage voice shortcuts. Say the phrase to paste the associated text.</p>
+        </div>
+
+        <Card className="w-full">
+          <CardHeader>
+            <CardTitle>Add Shortcut</CardTitle>
+            <CardDescription>
+              Create a new voice shortcut
+            </CardDescription>
+          </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex gap-4">
             <div className="flex-1">
@@ -141,6 +147,7 @@ export default function Shortcuts() {
           </div>
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }

@@ -89,7 +89,7 @@ export default function TranscriptionHistory() {
 
     const SortableHeader = ({ field, children }: { field: SortField; children: React.ReactNode }) => (
         <th
-            className="h-10 px-4 text-left align-middle font-medium text-muted-foreground cursor-pointer hover:text-foreground transition-colors select-none"
+            className="h-10 px-4 text-left align-middle font-medium text-muted-foreground cursor-pointer hover:text-foreground transition-colors select-none bg-background"
             onClick={() => handleSort(field)}
         >
             <div className="flex items-center gap-1">
@@ -161,31 +161,33 @@ export default function TranscriptionHistory() {
     }
 
     return (
-        <div className="flex flex-col gap-4 p-4 md:p-6">
-            <div className="flex flex-col gap-1">
-                <h1 className="text-2xl font-semibold">Transcription History</h1>
-                <p className="text-muted-foreground">
-                    {entries.length} transcription{entries.length !== 1 ? 's' : ''} saved
-                </p>
-            </div>
+        <div className="h-full overflow-auto">
+            <div className="flex flex-col gap-4 p-4 md:p-6">
+                <div className="flex flex-col gap-1">
+                    <h1 className="text-2xl font-semibold">Transcription History</h1>
+                    <p className="text-muted-foreground">
+                        {entries.length} transcription{entries.length !== 1 ? 's' : ''} saved
+                    </p>
+                </div>
 
-            <div className="rounded-md border overflow-x-auto">
-                <table className="w-full">
-                    <thead>
-                        <tr className="border-b bg-muted/50">
-                            <SortableHeader field="timestamp">Date/Time</SortableHeader>
-                            <SortableHeader field="duration_ms">Duration</SortableHeader>
-                            <SortableHeader field="word_count">Words</SortableHeader>
-                            <SortableHeader field="char_count">Chars</SortableHeader>
-                            {settings.save_full_text && (
-                                <th className="h-10 px-4 text-left align-middle font-medium text-muted-foreground">Text</th>
-                            )}
-                            <SortableHeader field="shortcut_used">Shortcut</SortableHeader>
-                            <SortableHeader field="target_app">App</SortableHeader>
-                            <th className="h-10 px-4 text-right align-middle font-medium text-muted-foreground">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
+                <div className="rounded-md border">
+                    <div className="max-h-[60vh] overflow-auto">
+                        <table className="w-full">
+                            <thead className="sticky top-0 z-10">
+                                <tr className="border-b bg-background">
+                                <SortableHeader field="timestamp">Date/Time</SortableHeader>
+                                <SortableHeader field="duration_ms">Duration</SortableHeader>
+                                <SortableHeader field="word_count">Words</SortableHeader>
+                                <SortableHeader field="char_count">Chars</SortableHeader>
+                                {settings.save_full_text && (
+                                    <th className="h-10 px-4 text-left align-middle font-medium text-muted-foreground bg-background">Text</th>
+                                )}
+                                <SortableHeader field="shortcut_used">Shortcut</SortableHeader>
+                                <SortableHeader field="target_app">App</SortableHeader>
+                                <th className="h-10 px-4 text-right align-middle font-medium text-muted-foreground bg-background">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
                         {paginatedEntries.map((entry) => (
                             <tr key={entry.id} className="border-b transition-colors hover:bg-muted/50">
                                 <td className="p-4 align-middle text-sm whitespace-nowrap">
@@ -245,8 +247,9 @@ export default function TranscriptionHistory() {
                                 </td>
                             </tr>
                         ))}
-                    </tbody>
-                </table>
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
             {/* Pagination */}
@@ -339,6 +342,7 @@ export default function TranscriptionHistory() {
                     </DialogClose>
                 </DialogContent>
             </Dialog>
+            </div>
         </div>
     );
 }
